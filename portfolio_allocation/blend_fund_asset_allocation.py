@@ -17,11 +17,11 @@ DEFAULT_CHARS_TO_STRIP: str = "USD$"
 
 
 def generate_blend_fund_asset_allocations():
-    """Combine all """
+    """Combine all"""
 
 
 def _create_blend_fund_asset_allocation(
-        fund_name: str, fund_mapping: Dict[str, Dict[str, float]], total_fund_value: float
+    fund_name: str, fund_mapping: Dict[str, Dict[str, float]], total_fund_value: float
 ) -> Dict[str, float]:
     """
     This prompts the user to enter the asset type and asset amount for
@@ -40,7 +40,7 @@ def _create_blend_fund_asset_allocation(
     curr_portfolio = PORTFOLIO_BREAKDOWN.copy()
     for asset_type in curr_portfolio:
         curr_portfolio[asset_type] = (
-                fund_mapping[fund_name].get(asset_type, 0) * total_fund_value
+            fund_mapping[fund_name].get(asset_type, 0) * total_fund_value
         )
     return curr_portfolio
 
@@ -64,7 +64,7 @@ def _create_blend_fund_asset_allocation(
 
 
 def _extract_dollar_amount(
-        asset_amount: str, chars_to_strip: str = DEFAULT_CHARS_TO_STRIP
+    asset_amount: str, chars_to_strip: str = DEFAULT_CHARS_TO_STRIP
 ) -> float:
     """
     Takes a string object and converts the input into a float value in
@@ -80,22 +80,25 @@ def _extract_dollar_amount(
     power = 0
     parsed_dollar_amount = 0
     for amount in dollar_amount[::-1]:
-        parsed_dollar_amount += float(amount) * 10 ** power
+        parsed_dollar_amount += float(amount) * 10**power
         power += 3
     return parsed_dollar_amount
 
 
-def process_blend_fund_tables(file_path: str, page_num: int,
-                              pandas_options: Dict[str, Any], table_index_number: int,
-                              fund_names: Set[str],
-                              fund_column_name: Union[str, int],
-                              fund_row_index_start: int = 0,
-                              fund_row_index_end: int = -1,
-                              fund_col_parse_function: Callable[[str], str] = None,
-                              fund_col_index_start: int = 0,
-                              fund_col_index_end: int = -1,
-                              fund_col_number: int = 0,
-                              ) -> pd.Series:
+def process_blend_fund_tables(
+    file_path: str,
+    page_num: int,
+    pandas_options: Dict[str, Any],
+    table_index_number: int,
+    fund_names: Set[str],
+    fund_column_name: Union[str, int],
+    fund_row_index_start: int = 0,
+    fund_row_index_end: int = -1,
+    fund_col_parse_function: Union[None, Callable[[str], str]] = None,
+    fund_col_index_start: int = 0,
+    fund_col_index_end: int = -1,
+    fund_col_number: int = 0,
+) -> pd.Series:
     """
 
     Args:
@@ -120,7 +123,6 @@ def process_blend_fund_tables(file_path: str, page_num: int,
         A pandas series with index as the funds and series value as the total asset amount as
         text.
     """
-
 
 
 def process_blend_fund_texts():

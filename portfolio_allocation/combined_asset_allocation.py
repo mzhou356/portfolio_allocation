@@ -1,5 +1,3 @@
-
-
 def combine_all_asset_allocation():
     """Combine blend and nonblend funds."""
 
