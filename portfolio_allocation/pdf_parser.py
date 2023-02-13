@@ -21,7 +21,10 @@ def load_pdf_statements(file_path: str) -> List[PageObject]:
 
 
 def parse_pdf_tables(
-    file_path: str, page_num: int, pandas_options: Dict[str, Any], table_index_number: int,
+    file_path: str,
+    page_num: int,
+    pandas_options: Dict[str, Any],
+    table_index_number: int,
 ) -> pd.DataFrame:
     """
     Reads in tables from a PDF file on a specific page.
