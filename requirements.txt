@@ -10,3 +10,5 @@ requests~=2.28.2
 six~=1.16.0
 pytest~=7.2.1
 pytest-cov~=4.0.0
+tabula-py~=2.6.0
+
