@@ -1,3 +1,8 @@
+"""This module combines both blend and nonblend accounts."""
+# pylint: disable=import-error
+""""""
+
+
 def combine_all_asset_allocation():
     """Combine blend and nonblend funds."""
 

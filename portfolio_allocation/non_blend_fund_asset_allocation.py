@@ -5,7 +5,7 @@ from typing import Dict
 
 from portfolio_allocation import PORTFOLIO_BREAKDOWN, combine_portfolios
 from portfolio_allocation.configuration import (
-    ACCOUNT_TO_ASSET_TYPE_MAPPING,
+    NON_BLEND_FUND_ACCOUNT_TO_ASSET_TYPE_MAPPING,
     ALL_CURRENT_NON_BLEND_ACCOUNTS,
 )
 
@@ -20,7 +20,7 @@ def _create_non_blend_fund_asset_allocation(account_name: str) -> Dict[str, floa
     Returns:
          A dictionary with asset_type as key and asset amount as value.
     """
-    asset_type = ACCOUNT_TO_ASSET_TYPE_MAPPING[account_name]
+    asset_type = NON_BLEND_FUND_ACCOUNT_TO_ASSET_TYPE_MAPPING[account_name]
     if asset_type == "mortgage":
         asset_amount = _estimate_mortgage_asset()
     else:
