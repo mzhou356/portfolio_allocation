@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 """This module calculates asset_allocation for all accounts with just one
 type fund."""
 from typing import Dict
