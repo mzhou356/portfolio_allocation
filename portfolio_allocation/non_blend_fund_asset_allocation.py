@@ -1,3 +1,5 @@
+"""This module calculates asset_allocation for all accounts with just one
+type fund."""
 from typing import Dict
 
 from portfolio_allocation import PORTFOLIO_BREAKDOWN, combine_portfolios
