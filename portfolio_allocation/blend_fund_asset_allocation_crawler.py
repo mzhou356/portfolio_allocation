@@ -1,3 +1,6 @@
+# pylint: disable=import-error
+"""This module contains functions that gets the more real time mutual fund or
+etf fund asset allocations for the blend fund asset allocation calculation. """
 import json
 import logging
 from typing import Dict
