@@ -1,5 +1,7 @@
-from typing import Any, Dict, List
+"""This module contain all functions that enable parsing a PDF file as a table
+or text."""
 
+from typing import Any, Dict, List
 import pandas as pd
 import PyPDF2
 import tabula

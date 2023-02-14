@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring
 from typing import Dict
 
 PORTFOLIO_BREAKDOWN: Dict[str, float] = {
