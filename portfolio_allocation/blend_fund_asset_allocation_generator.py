@@ -11,8 +11,6 @@ from bs4 import BeautifulSoup
 from portfolio_allocation.configuration import DEFAULT_API_KEY
 from portfolio_allocation import PORTFOLIO_BREAKDOWN
 
-ETF_URL: str = "etfs/arcx"
-MUTUAL_FUND_URL: str = "funds/xnas"
 MORNINGSTAR_FRONT_URL: str = "https://www.morningstar.com"
 MORNINGSTAR_END_URL: str = "portfolio"
 BEAUTIFULSOUP_PARSER: str = "html.parser"
@@ -41,7 +39,7 @@ PERCENT_FACTOR: float = 100.0
 LOGGER = logging.getLogger(__name__)
 
 
-def blend_fund_asset_allocation_crawler(
+def blend_fund_asset_allocation_generator(
     fund_name_to_ticker_mapping: Dict[str, str], mid_url: str
 ) -> Dict[str, Dict[str, float]]:
     """

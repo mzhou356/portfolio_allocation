@@ -7,29 +7,158 @@ import pandas as pd
 
 from portfolio_allocation import PORTFOLIO_BREAKDOWN, combine_portfolios
 from portfolio_allocation.pdf_parser import parse_pdf_tables, load_pdf_statements
+from portfolio_allocation.blend_fund_asset_allocation_generator import (
+    blend_fund_asset_allocation_generator,
+)
+from portfolio_allocation.configuration import (
+    ALL_CURRENT_BLEND_ACCOUNTS,
+    BLEND_FUND_ACCOUNT_TO_ASSET_CALCULATION_MAPPING,
+)
 
 DEFAULT_CHARS_TO_STRIP: str = "USD$"
 
 
-# def generate_combined_blend_fund_asset_allocation() -> Dict[str, float]:
-#     """
-#     This function creates the combined asset allocation for all non blend
-#     fund accounts.
-#     Returns:
-#     A dictionary with combined asset allocation for all accounts.
-#     """
-#     pass
+def generate_combined_blend_fund_asset_allocation() -> Dict[str, float]:
+    """
+    This function creates the combined asset allocation for all non blend
+    fund accounts.
+    Returns:
+    A dictionary with combined asset allocation for all accounts.
+    """
+    combined_blend_fund_asset_allocation = PORTFOLIO_BREAKDOWN.copy()
+    for blend_account in ALL_CURRENT_BLEND_ACCOUNTS:
+        asset_information = BLEND_FUND_ACCOUNT_TO_ASSET_CALCULATION_MAPPING[
+            blend_account
+        ]
+        file_path = asset_information["file_path"]
+        fund_name_to_ticker_mapping = asset_information["fund_name_to_ticker_mapping"]
+        page_nums = asset_information["page_nums"]
+        fund_name_lists = asset_information["fund_name_lists"]
+        mid_url = asset_information["mid_url"]
+        if asset_information["pdf_table_parse"]:
+            curr_account_portfolio = _process_all_pdf_table_funds(
+                asset_information=asset_information,
+                fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+                mid_url=mid_url,
+                file_path=file_path,
+                page_nums=page_nums,
+                fund_name_lists=fund_name_lists,
+            )
+        else:
+            curr_account_portfolio = _process_all_text_funds(
+                asset_information=asset_information,
+                fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+                mid_url=mid_url,
+                file_path=file_path,
+                page_nums=page_nums,
+                fund_name_lists=fund_name_lists,
+            )
+
+        combined_blend_fund_asset_allocation = combine_portfolios(
+            portfolio_a=combined_blend_fund_asset_allocation,
+            portfolio_b=curr_account_portfolio,
+        )
+    return combined_blend_fund_asset_allocation
 
 
-#     curr_portfolio: Dict[str, float] = {}
-#     for account_name in ALL_CURRENT_ACCOUNTS:
-#         curr_portfolio = combine_portfolios(
-#             portfolio_a=curr_portfolio,
-#             portfolio_b=create_blend_fund_asset_allocation(
-#                 account_name=account_name,
-#             ),
-#         )
-#     return curr_portfolio
+def _process_all_text_funds(
+    asset_information: Dict[str, Any],
+    fund_name_to_ticker_mapping: List[Dict[str, str]],
+    mid_url: List[str],
+    file_path: str,
+    page_nums: List[int],
+    fund_name_lists: List[List[str]],
+) -> Dict[str, float]:
+    """
+    This function gathers all non pdf table funds and creates the combined
+    asset allocation.
+    Args:
+        asset_information (Dict[str, Any]): asset and fund parse information for
+        a specific account.
+        fund_name_to_ticker_mapping (Dict[str, str]): A dictionary containing all funds
+        in a blend account with
+        ticker symbol mapping as value.
+        mid_url (str): the base url that differentiates between etfs and mutual_funds.
+        file_path (str): statement filepath.
+        page_nums (List[int]): the page numbers for the tables to parse, page one is 0.
+        fund_name_lists (List[List[str]]): a set of fund_names the PDF text has information for.
+    Returns:
+        Fund asset allocation in the standardized portfolio_breakdown
+       format.
+    """
+    fund_value_index_number = asset_information["fund_value_index_number"]
+    amount_str_filter = asset_information.get("asset_str_filter")
+    for index, sub_account in enumerate(fund_name_lists):
+        blend_fund_asset_allocation = blend_fund_asset_allocation_generator(
+            fund_name_to_ticker_mapping=fund_name_to_ticker_mapping[index],
+            mid_url=mid_url[index],
+        )
+        curr_account_portfolio = _process_blend_fund_texts(
+            file_path=file_path,
+            target_page_num=page_nums[index],
+            blend_fund_asset_allocation=blend_fund_asset_allocation,
+            fund_names=sub_account,
+            fund_value_index_number=fund_value_index_number[index],
+            amount_str_filter=amount_str_filter[index] if amount_str_filter else None,
+        )
+    return curr_account_portfolio
+
+
+def _process_all_pdf_table_funds(
+    asset_information: Dict[str, Any],
+    fund_name_to_ticker_mapping: List[Dict[str, str]],
+    mid_url: List[str],
+    file_path: str,
+    page_nums: List[int],
+    fund_name_lists: List[List[str]],
+) -> Dict[str, float]:
+    """
+    This function gathers all pdf table funds and creates the combined
+    asset allocation.
+    Args:
+        asset_information (Dict[str, Any]): asset and fund parse information for
+        a specific account.
+        fund_name_to_ticker_mapping (Dict[str, str]): A dictionary containing all funds
+        in a blend account with
+        ticker symbol mapping as value.
+        mid_url (str): the base url that differentiates between etfs and mutual_funds.
+        file_path (str): statement filepath.
+        page_nums (List[int]): the page numbers for the tables to parse, page one is 0.
+        fund_name_lists (List[List[str]]): a set of fund_names the PDF text has information for.
+    Returns:
+        Fund asset allocation in the standardized portfolio_breakdown
+       format.
+    """
+    all_processed_fund_tables = []
+    pandas_parse_options = asset_information["pandas_parse_options"]
+    table_index_numbers = asset_information["table_index_number"]
+    fund_value_column_names = asset_information["fund_value_column_names"]
+    fund_col_parse_function = asset_information["fund_col_parse_function"]
+    fund_row_index_start = asset_information["fund_row_index_start"]
+    for index, sub_account in enumerate(fund_name_lists):
+        blend_fund_asset_allocation = blend_fund_asset_allocation_generator(
+            fund_name_to_ticker_mapping=fund_name_to_ticker_mapping[index],
+            mid_url=mid_url[index],
+        )
+        fund_information = _process_blend_fund_tables(
+            file_path=file_path,
+            page_num=page_nums[index],
+            pandas_options=pandas_parse_options[index],
+            table_index_number=table_index_numbers[index],
+            fund_names=sub_account,
+            fund_value_column_name=fund_value_column_names[index],
+            fund_row_index_start=fund_row_index_start[index],
+            fund_col_parse_function=_process_fund_name_columns
+            if fund_col_parse_function[index]
+            else None,
+        )
+        all_processed_fund_tables.append(fund_information)
+    curr_account_portfolio = _create_asset_allocation_from_pdf_tables(
+        blend_fund_asset_allocation=blend_fund_asset_allocation,
+        fund_list=all_processed_fund_tables,
+        vested_pct=asset_information["vested_pct"],
+    )
+    return curr_account_portfolio
 
 
 def _create_blend_fund_asset_allocation(
