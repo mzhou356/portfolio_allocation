@@ -7,7 +7,7 @@ import pandas as pd
 
 from portfolio_allocation import PORTFOLIO_BREAKDOWN, combine_portfolios
 from portfolio_allocation.pdf_parser import parse_pdf_tables, load_pdf_statements
-from portfolio_allocation.blend_fund_asset_allocation_generator import (
+from portfolio_allocation.blend_fund_asset_allocation_scraper import (
     blend_fund_asset_allocation_generator,
 )
 from portfolio_allocation.configuration import (
@@ -88,11 +88,17 @@ def _process_all_text_funds(
     """
     fund_value_index_number = asset_information["fund_value_index_number"]
     amount_str_filter = asset_information.get("asset_str_filter")
+    non_blend_fund_allocation = asset_information.get("non_blend_fund_allocation", None)
     for index, sub_account in enumerate(fund_name_lists):
-        blend_fund_asset_allocation = blend_fund_asset_allocation_generator(
-            fund_name_to_ticker_mapping=fund_name_to_ticker_mapping[index],
-            mid_url=mid_url[index],
-        )
+        if non_blend_fund_allocation and (
+            index == non_blend_fund_allocation["fund_index"]
+        ):
+            blend_fund_asset_allocation = non_blend_fund_allocation["fund_allocation"]
+        else:
+            blend_fund_asset_allocation = blend_fund_asset_allocation_generator(
+                fund_name_to_ticker_mapping=fund_name_to_ticker_mapping[index],
+                mid_url=mid_url[index],
+            )
         curr_account_portfolio = _process_blend_fund_texts(
             file_path=file_path,
             target_page_num=page_nums[index],
