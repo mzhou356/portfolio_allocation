@@ -7,7 +7,7 @@ from typing import List
 
 import pandas as pd
 
-ROOT_DIR: Path = Path(__file__).parent
+ROOT_DIR: Path = Path(__file__).parent.parent
 
 DEFAULT_PATH: str = "asset_allocation.html"
 
