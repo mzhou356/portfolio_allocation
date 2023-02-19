@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring
+from pathlib import Path
 from typing import Dict
 
 PORTFOLIO_BREAKDOWN: Dict[str, float] = {
@@ -28,3 +29,6 @@ def combine_portfolios(
         asset_type: portfolio_a.get(asset_type, 0) + portfolio_b.get(asset_type, 0)
         for asset_type in all_keys
     }
+
+
+ROOT_DIR: Path = Path(__file__).parent.parent

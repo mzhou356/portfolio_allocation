@@ -2,18 +2,18 @@
 the default browser with allocation information."""
 
 import webbrowser
-from pathlib import Path
 from typing import List, Tuple
 from enum import Enum
 
 import pandas as pd
 
-ROOT_DIR: Path = Path(__file__).parent.parent
+from portfolio_allocation import ROOT_DIR
 
 DEFAULT_PATH: str = "asset_allocation.html"
-ASSET_CLASS_TABLE_START_END_LINE_INDICES: Tuple[int, int] = (46, 78)
-REGION_TABLE_START_END_LINE_INDICES: Tuple[int, int] = (94, 127)
-DEFAULT_INDENT: str = 4 * "\t"
+ASSET_CLASS_TABLE_START_END_LINE_INDICES: Tuple[int, int] = (45, 79)
+REGION_TABLE_START_END_LINE_INDICES: Tuple[int, int] = (93, 128)
+DEFAULT_INDENT: str = 3 * "\t"
+DEFAULT_END: str = "\n"
 
 
 class AssetTableType(Enum):
@@ -46,9 +46,15 @@ def _convert_df_to_html_table(asset_table: pd.DataFrame) -> List[str]:
     """
     output_html_table_lines = []
     for _, record in asset_table.iterrows():
-        output_html_table_lines.append(f"{DEFAULT_INDENT}<td>{record.name}</td>")
+        output_html_table_lines.append("\t\t<tr>\n")
+        output_html_table_lines.append(
+            f"{DEFAULT_INDENT}<td>{record.name}</td>{DEFAULT_END}"
+        )
         for row_value in record:
-            output_html_table_lines.append(f"{DEFAULT_INDENT}<td>{row_value}</td>")
+            output_html_table_lines.append(
+                f"{DEFAULT_INDENT}<td>{row_value}</td>{DEFAULT_END}"
+            )
+        output_html_table_lines.append("\t\t</tr>\n")
     return output_html_table_lines
 
 
@@ -67,6 +73,7 @@ def _update_asset_allocation_table(
     Returns:
         all the html file lines with the table lines updated.
     """
+    html_data = html_data.copy()
     if asset_table_type is AssetTableType.REGION:
         start_index, end_index = REGION_TABLE_START_END_LINE_INDICES
     else:
