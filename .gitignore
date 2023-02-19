@@ -167,3 +167,4 @@ prospectus/
 *.DS_Store
 gptchatoutput/
 config*
+*.html

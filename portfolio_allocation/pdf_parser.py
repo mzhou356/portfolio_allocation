@@ -27,23 +27,26 @@ def parse_pdf_tables(
     page_num: int,
     pandas_options: Dict[str, Any],
     table_index_number: int,
+    multiple_table_flag: bool,
 ) -> pd.DataFrame:
     """
     Reads in tables from a PDF file on a specific page.
     Args:
         file_path (str): statement filepath.
-        page_num (int): the page number for the tables to parse, page one is 0.
-        pandas_options (Dict[str, Any]): optional argument for the pandas method
-        pd.read_csv.
-        table_index_number (int): the table number after read in the tables as a list.
-        table 1 is 0.
+        page_num (int): the page number for the tables to parse,
+        page one is 0.
+        pandas_options (Dict[str, Any]): optional argument for the
+        pandas method pd.read_csv.
+        table_index_number (int): the table number after read in the tables
+        as a list. table 1 is 0.
+        multiple_table_flag (bool): only one table or multiple table in the page.
 
     Returns:
         a pandas dataframe with the parsed PDF table.
     """
     return tabula.read_pdf(
         input_path=file_path,
+        multiple_tables=multiple_table_flag,
         pages=page_num,
-        multiple_tables=False,
         pandas_options=pandas_options,
     )[table_index_number]

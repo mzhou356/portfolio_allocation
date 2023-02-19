@@ -1,11 +1,10 @@
-# pylint: disable=import-error
 """This module combines both blend and non-blend accounts."""
 
 from typing import Dict, List, Set
 
 import pandas as pd
 
-from portfolio_allocation import combine_portfolios
+from portfolio_allocation import combine_portfolios, PORTFOLIO_BREAKDOWN
 
 DEFAULT_DATAFRAME_ORIENT: str = "index"
 DEFAULT_ASSET_AMOUNT_COLUMN_NAME: str = "asset_value($)"
@@ -19,6 +18,7 @@ DEFAULT_ASSET_ALLOCATION_BY_REGION_AND_ASSET_CLASS_COLUMNS: List[str] = [
     "not_classified",
 ]
 DEFAULT_US_ASSET_TYPES: Set[str] = {"cash", "other", "not_classified", "mortgage"}
+ALL_ASSET_TYPES: Set[str] = {"mortgage"}.union(PORTFOLIO_BREAKDOWN.keys())
 DEFAULT_US_INTERNATIONAL_ASSET_TYPES: Set[str] = {"fixed_income"}
 DEFAULT_REGION_INDICES: List[str] = ["us", "international", "us_international"]
 DEFAULT_NA_VALUE: float = 0.0
@@ -30,11 +30,13 @@ def combine_all_asset_allocation(
     non_blend_fund_asset_allocation: Dict[str, float],
 ) -> Dict[str, float]:
     """
-    This function takes in both blend_fund_asset_allocation and non blend fund asset allocation
-    and combines into a final all_asset_allocation.
+    This function takes in both blend_fund_asset_allocation and non blend
+    fund asset allocation and combines into a final all_asset_allocation.
     Args:
-        blend_fund_asset_allocation (Dict[str, float]): asset allocation for blend fund accounts.
-        non_blend_fund_asset_allocation (Dict[str, float]): asset allocation for non blend fund accounts.
+        blend_fund_asset_allocation (Dict[str, float]): asset allocation for
+        blend fund accounts.
+        non_blend_fund_asset_allocation (Dict[str, float]): asset allocation for
+        non blend fund accounts.
 
     Returns:
         combined asset allocation from both account types.
@@ -120,7 +122,7 @@ def generate_asset_allocation_by_region_and_asset_class_table(
         value=DEFAULT_NA_VALUE,
         inplace=True,
     )
-    for asset_type in DEFAULT_ASSET_ALLOCATION_BY_REGION_AND_ASSET_CLASS_COLUMNS:
+    for asset_type in ALL_ASSET_TYPES:
         df_index, col_name = _assign_asset_type_breakdown(
             asset_type=asset_type,
         )

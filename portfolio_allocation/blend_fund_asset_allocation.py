@@ -1,4 +1,4 @@
-# pylint: disable=import-error, too-many-locals
+# pylint: disable=no-name-in-module, import-error, too-many-locals, too-many-arguments
 """This module calculates asset_allocation for all accounts with just one or
 more blend type funds or funds."""
 from typing import Dict, Any, Set, Union, Callable, List, Optional
@@ -53,7 +53,6 @@ def generate_combined_blend_fund_asset_allocation() -> Dict[str, float]:
                 page_nums=page_nums,
                 fund_name_lists=fund_name_lists,
             )
-
         combined_blend_fund_asset_allocation = combine_portfolios(
             portfolio_a=combined_blend_fund_asset_allocation,
             portfolio_b=curr_account_portfolio,
@@ -81,14 +80,16 @@ def _process_all_text_funds(
         mid_url (str): the base url that differentiates between etfs and mutual_funds.
         file_path (str): statement filepath.
         page_nums (List[int]): the page numbers for the tables to parse, page one is 0.
-        fund_name_lists (List[List[str]]): a set of fund_names the PDF text has information for.
+        fund_name_lists (List[List[str]]): a set of fund_names the PDF text has
+        information for.
     Returns:
         Fund asset allocation in the standardized portfolio_breakdown
        format.
     """
     fund_value_index_number = asset_information["fund_value_index_number"]
-    amount_str_filter = asset_information.get("asset_str_filter")
+    amount_str_filter = asset_information.get("amount_str_filter")
     non_blend_fund_allocation = asset_information.get("non_blend_fund_allocation", None)
+    total_account_portfolio: Dict[str, float] = {}
     for index, sub_account in enumerate(fund_name_lists):
         if non_blend_fund_allocation and (
             index == non_blend_fund_allocation["fund_index"]
@@ -107,7 +108,11 @@ def _process_all_text_funds(
             fund_value_index_number=fund_value_index_number[index],
             amount_str_filter=amount_str_filter[index] if amount_str_filter else None,
         )
-    return curr_account_portfolio
+        total_account_portfolio = combine_portfolios(
+            portfolio_a=total_account_portfolio,
+            portfolio_b=curr_account_portfolio,
+        )
+    return total_account_portfolio
 
 
 def _process_all_pdf_table_funds(
@@ -130,7 +135,8 @@ def _process_all_pdf_table_funds(
         mid_url (str): the base url that differentiates between etfs and mutual_funds.
         file_path (str): statement filepath.
         page_nums (List[int]): the page numbers for the tables to parse, page one is 0.
-        fund_name_lists (List[List[str]]): a set of fund_names the PDF text has information for.
+        fund_name_lists (List[List[str]]): a set of fund_names the PDF text has
+        information for.
     Returns:
         Fund asset allocation in the standardized portfolio_breakdown
        format.
@@ -141,16 +147,21 @@ def _process_all_pdf_table_funds(
     fund_value_column_names = asset_information["fund_value_column_names"]
     fund_col_parse_function = asset_information["fund_col_parse_function"]
     fund_row_index_start = asset_information["fund_row_index_start"]
+    multiple_table_flags = asset_information["multiple_table_flags"]
+    blend_fund_asset_allocation = {}
     for index, sub_account in enumerate(fund_name_lists):
-        blend_fund_asset_allocation = blend_fund_asset_allocation_generator(
-            fund_name_to_ticker_mapping=fund_name_to_ticker_mapping[index],
-            mid_url=mid_url[index],
+        blend_fund_asset_allocation.update(
+            blend_fund_asset_allocation_generator(
+                fund_name_to_ticker_mapping=fund_name_to_ticker_mapping[index],
+                mid_url=mid_url[index],
+            )
         )
         fund_information = _process_blend_fund_tables(
             file_path=file_path,
             page_num=page_nums[index],
             pandas_options=pandas_parse_options[index],
             table_index_number=table_index_numbers[index],
+            multiple_table_flag=multiple_table_flags[index],
             fund_names=sub_account,
             fund_value_column_name=fund_value_column_names[index],
             fund_row_index_start=fund_row_index_start[index],
@@ -239,6 +250,7 @@ def _process_blend_fund_tables(
     page_num: int,
     pandas_options: Dict[str, Any],
     table_index_number: int,
+    multiple_table_flag: bool,
     fund_names: List[str],
     fund_value_column_name: Union[str, int],
     fund_row_index_start: int = 0,
@@ -257,27 +269,30 @@ def _process_blend_fund_tables(
         pd.read_csv.
         table_index_number (int): the table number after read in the tables as a list.
         table 1 is 0.
+        multiple_table_flag (bool): only one table or multiple table in the page.
         fund_names (List[str]): a set of fund_names the PDF tables have information for.
         fund_value_column_name (Union[str, int]): fund column name as a string or an int
         depending on if the row is skipped after parsing. This column gives the asset
         amount as text.
         fund_row_index_start: which row to start for parsed pdf table. Default is 0.
         fund_row_index_end (int): which row to end for parsed pdf table. Default is -1.
-        fund_col_parse_function (Callable[[str, int, int], str): Default None. If the rows are skipped and the table
-        needs to be processed further to extract all fund names in proper format as table indices.
+        fund_col_parse_function (Callable[[str, int, int], str): Default None. If the
+        rows are skipped and the table needs to be processed further to extract all
+        fund names in proper format as table indices.
         fund_col_index_start (int): an argument for the fund_col_parse_function.
         fund_col_index_end (int): an argument for the fund_col_parse_function.
-        fund_col_number (int): fund column number as an int after rows are skipped and only needed
-        to get a list of funds as index for the table.
+        fund_col_number (int): fund column number as an int after rows are skipped
+        and only needed to get a list of funds as index for the table.
     Returns:
-        A pandas series with index as the funds and series value as the total asset amount as
-        text.
+        A pandas series with index as the funds and series value as the total asset
+        amount as text.
     """
     parsed_pdf_table = parse_pdf_tables(
         file_path=file_path,
         page_num=page_num,
         pandas_options=pandas_options,
         table_index_number=table_index_number,
+        multiple_table_flag=multiple_table_flag,
     )
     if fund_col_parse_function:
         parsed_pdf_table = parsed_pdf_table.iloc[
@@ -317,10 +332,11 @@ def _create_asset_allocation_from_pdf_tables(
     """
     final_portfolio_breakdown = PORTFOLIO_BREAKDOWN.copy()
     combined_fund_information = pd.concat(fund_list)
-    for fund_name in combined_fund_information:
+    for fund_name in combined_fund_information.index:
         total_fund_value = _extract_dollar_amount(
-            asset_amount=combined_fund_information.loc[fund_name] * vested_pct
+            asset_amount=combined_fund_information.loc[fund_name],
         )
+        total_fund_value *= vested_pct
         fund_portfolio_breakdown = _create_blend_fund_asset_allocation(
             fund_name=fund_name,
             fund_mapping=blend_fund_asset_allocation,
@@ -400,10 +416,12 @@ def _process_blend_fund_texts(
          blend_fund_asset_allocation (Dict[str, Dict[str, float]]): asset
          allocation for a blend fund account with blend fund as name and
          asset allocation as value.
-         fund_names (List[str]): a set of fund_names the PDF text has information for.
+         fund_names (List[str]): a set of fund_names the PDF text has information
+         for.
          fund_value_index_number (int): the index for where the fund value is
          inside the text.
-         amount_str_filter (Optional[str]): if the line containing the fund amount needs to
+         amount_str_filter (Optional[str]): if the line containing the fund amount
+         needs to
          have text filter, then this str filter is passed in. This returns all text
          containing the str.
     Returns:
