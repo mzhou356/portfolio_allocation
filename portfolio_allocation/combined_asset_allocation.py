@@ -1,4 +1,3 @@
-# pylint: disable=import-error
 """This module combines both blend and non-blend accounts."""
 
 from typing import Dict, List, Set
