@@ -1,4 +1,4 @@
-# pylint: disable=import-error
+# pylint: disable=no-name-in-module
 """This module contains functions that gets the more real time mutual fund or
 etf fund asset allocations for the blend fund asset allocation calculation. """
 import json

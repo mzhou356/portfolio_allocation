@@ -1,4 +1,4 @@
-# pylint: disable=import-error
+# pylint:disable=no-name-in-module
 """This module calculates asset_allocation for all accounts with just one
 type fund."""
 from typing import Dict
