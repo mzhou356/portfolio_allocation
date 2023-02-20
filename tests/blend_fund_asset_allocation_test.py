@@ -4,6 +4,7 @@ import pytest
 from portfolio_allocation.blend_fund_asset_allocation import (
     _relevant_page_filter,
     _process_fund_name_columns,
+    _extract_dollar_amount,
 )
 
 
@@ -33,7 +34,9 @@ def test_relevant_page_filter_succeeds(page_num, target_page_num, expected):
         ("info fund_B info $25,000.00 total", 1, 2, "fund_B"),
     ],
 )
-def test_process_fund_name_columns(text_line, start_index, end_index, expected):
+def test_process_fund_name_columns_succeeds(
+    text_line, start_index, end_index, expected
+):
     """Test _process_fund_name_columns function."""
     actual = _process_fund_name_columns(
         text_with_fund_name=text_line,
@@ -41,4 +44,23 @@ def test_process_fund_name_columns(text_line, start_index, end_index, expected):
         fund_col_index_end=end_index,
     )
 
+    assert expected == actual
+
+
+@pytest.mark.parametrize(
+    "asset_amount, chars_to_strip, expected",
+    [
+        ("$100,000", "$", 100000.0),
+        ("USD125.00", "USD", 125.0),
+        ("1000,000.25", "", 1000000.25),
+        ("USD$6.25", "USD$", 6.25),
+        (".25", "", 0.25),
+    ],
+)
+def test_extract_dollar_amount_succeeds(asset_amount, chars_to_strip, expected):
+    """Test extract_dollar_amount."""
+    actual = _extract_dollar_amount(
+        asset_amount=asset_amount,
+        chars_to_strip=chars_to_strip,
+    )
     assert expected == actual
