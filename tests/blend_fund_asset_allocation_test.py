@@ -12,6 +12,7 @@ from portfolio_allocation.blend_fund_asset_allocation import (
     _process_blend_fund_tables,
     _create_asset_allocation_from_pdf_tables,
     _create_blend_fund_asset_allocation,
+    _process_all_pdf_table_funds,
 )
 
 
@@ -81,7 +82,7 @@ def test_extract_dollar_amount_succeeds(asset_amount, chars_to_strip, expected) 
         ("fund B 100.0 fund A 240.25", 2, None, 100.0),
     ],
 )
-def test_extract_fund_value_from_text_line(
+def test_extract_fund_value_from_text_line_succeeds(
     text_line, index_number, str_filter, expected
 ) -> None:
     """Test function extract_fund_value_from_text_line"""
@@ -93,7 +94,7 @@ def test_extract_fund_value_from_text_line(
     assert expected == actual
 
 
-def test_process_blend_fund_texts(
+def test_process_blend_fund_texts_succeeds(
     pdf_statement_pages,
     blend_fund_asset_allocation_text_fund,
     expected_text_fund_asset_allocation,
@@ -174,7 +175,6 @@ def test_process_blend_fund_tables_with_col_parse_function_succeeds(
     fund_names = ["fund_e", "fund_f"]
     fund_value_column_name = 1
     fund_row_index_start = 1
-    fund_row_index_end = 3
     fund_col_parse_function = _process_fund_name_columns
     fund_col_index_end = 1
     fund_col_number = 0
@@ -188,7 +188,6 @@ def test_process_blend_fund_tables_with_col_parse_function_succeeds(
         fund_names=fund_names,
         fund_value_column_name=fund_value_column_name,
         fund_row_index_start=fund_row_index_start,
-        fund_row_index_end=fund_row_index_end,
         fund_col_parse_function=fund_col_parse_function,
         fund_col_index_end=fund_col_index_end,
         fund_col_number=fund_col_number,
@@ -197,7 +196,7 @@ def test_process_blend_fund_tables_with_col_parse_function_succeeds(
     pd.testing.assert_series_equal(left=actual, right=blend_fund_table_two_output)
 
 
-def test_create_asset_allocation_from_pdf_tables(
+def test_create_asset_allocation_from_pdf_tables_succeeds(
     blend_fund_asset_allocation_table_fund,
     expected_table_fund_asset_allocation,
     blend_fund_table_one_output,
@@ -249,7 +248,7 @@ def test_create_asset_allocation_from_pdf_tables(
         ),
     ],
 )
-def test_create_blend_fund_asset_allocation(
+def test_create_blend_fund_asset_allocation_succeeds(
     fund_name, fund_mapping, total_fund_value, expected
 ) -> None:
     """Test function create blend fund asset allocation."""
@@ -258,4 +257,54 @@ def test_create_blend_fund_asset_allocation(
         fund_mapping=fund_mapping,
         total_fund_value=total_fund_value,
     )
+    assert actual == expected
+
+
+def test_process_all_pdf_table_funds_succeeds(
+    blend_fund_table_two_output,
+    blend_fund_asset_allocation_table_fund,
+    mocker,
+) -> None:
+    """Test process_all_pdf_table_funds"""
+    asset_information = {
+        "pandas_parse_options": [{}],
+        "table_index_number": [0],
+        "fund_value_column_names": [1],
+        "fund_col_parse_function": [True],
+        "fund_row_index_start": [1],
+        "multiple_table_flags": [False],
+        "vested_pct": 1.0,
+    }
+    fund_name_lists = [["fund_e", "fund_f"]]
+    fund_name_to_ticker_mapping = [{"fund_e": "ticker_e"}]
+    mid_url = ["url"]
+    page_nums = [0]
+    file_path = "test_file_path"
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation."
+        "blend_fund_asset_allocation_generator",
+        return_value=blend_fund_asset_allocation_table_fund,
+    )
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation._process_blend_fund_tables",
+        return_value=blend_fund_table_two_output,
+    )
+    expected = {
+        "international_stock": 151.2,
+        "cash": 86.0,
+        "fixed_income": 107.5,
+        "us_stock": 856.8,
+        "not_classified": 21.5,
+        "other": 0.0,
+    }
+
+    actual = _process_all_pdf_table_funds(
+        asset_information=asset_information,
+        fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+        mid_url=mid_url,
+        file_path=file_path,
+        page_nums=page_nums,
+        fund_name_lists=fund_name_lists,
+    )
+
     assert actual == expected

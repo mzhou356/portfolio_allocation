@@ -100,8 +100,11 @@ def blend_fund_table_one_output() -> pd.Series:
 @pytest.fixture(scope="function")
 def blend_fund_table_two() -> pd.DataFrame:
     return pd.DataFrame(
-        {0: ["random", "fund_e yes", "fund_f no"], 1: [-1, "215.0", "1008.0"]},
-        index=[0, 1, 2],
+        {
+            0: ["random", "fund_e yes", "fund_f no", "waste"],
+            1: [-1, "215.0", "1008.0", "0"],
+        },
+        index=[0, 1, 2, 3],
     )
 
 
