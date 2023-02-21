@@ -1,4 +1,6 @@
+# pylint: disable = too-many-locals
 """This module tests all functions from module blend_fund_asset_allocation."""
+import pandas as pd
 import pytest
 
 from portfolio_allocation.blend_fund_asset_allocation import (
@@ -7,6 +9,7 @@ from portfolio_allocation.blend_fund_asset_allocation import (
     _extract_dollar_amount,
     _extract_fund_value_from_text_line,
     _process_blend_fund_texts,
+    _process_blend_fund_tables,
 )
 
 
@@ -90,7 +93,7 @@ def test_extract_fund_value_from_text_line(
 
 def test_process_blend_fund_texts(
     pdf_statement_pages,
-    blend_fund_asset_allocation,
+    blend_fund_asset_allocation_text_fund,
     expected_text_fund_asset_allocation,
     mocker,
 ) -> None:
@@ -98,7 +101,6 @@ def test_process_blend_fund_texts(
     mocker.patch(
         "portfolio_allocation.blend_fund_asset_allocation.load_pdf_statements",
         return_value=pdf_statement_pages,
-        name="mock_load_pdf_statement_method",
     )
     fund_names = ["A", "B", "C", "E", "F"]
     target_page_nums = {1, 2}
@@ -108,9 +110,86 @@ def test_process_blend_fund_texts(
     actual = _process_blend_fund_texts(
         file_path=file_path,
         target_page_num=target_page_nums,
-        blend_fund_asset_allocation=blend_fund_asset_allocation,
+        blend_fund_asset_allocation=blend_fund_asset_allocation_text_fund,
         fund_names=fund_names,
         fund_value_index_number=fund_value_index_number,
     )
 
     assert expected_text_fund_asset_allocation == actual
+
+
+def test_process_blend_fund_tables_without_col_parse_function_succeeds(
+    blend_fund_table_one,
+    blend_fund_table_one_output,
+    mocker,
+) -> None:
+    """
+    Test process_blend_fund_tables without col parse function.
+    """
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation.parse_pdf_tables",
+        return_value=blend_fund_table_one,
+    )
+    file_path = "test_file_path"
+    page_num = 0
+    pandas_options = {"headers": None}
+    table_index_number = 0
+    multiple_table_flag = False
+    fund_names = ["fund_a", "fund_b", "fund_c"]
+    fund_value_column_name = "balance"
+
+    actual = _process_blend_fund_tables(
+        file_path=file_path,
+        page_num=page_num,
+        pandas_options=pandas_options,
+        table_index_number=table_index_number,
+        multiple_table_flag=multiple_table_flag,
+        fund_names=fund_names,
+        fund_value_column_name=fund_value_column_name,
+    )
+
+    pd.testing.assert_series_equal(left=actual, right=blend_fund_table_one_output)
+
+
+def test_process_blend_fund_tables_with_col_parse_function_succeeds(
+    blend_fund_table_two,
+    blend_fund_table_two_output,
+    mocker,
+) -> None:
+    """
+    Test process_blend_fund_tables with col parse function.
+    """
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation.parse_pdf_tables",
+        return_value=blend_fund_table_two,
+    )
+
+    file_path = "test_file_path"
+    page_num = 0
+    pandas_options = {"headers": None}
+    table_index_number = 0
+    multiple_table_flag = False
+    fund_names = ["fund_e", "fund_f"]
+    fund_value_column_name = 1
+    fund_row_index_start = 1
+    fund_row_index_end = 3
+    fund_col_parse_function = _process_fund_name_columns
+    fund_col_index_end = 1
+    fund_col_number = 0
+
+    actual = _process_blend_fund_tables(
+        file_path=file_path,
+        page_num=page_num,
+        pandas_options=pandas_options,
+        table_index_number=table_index_number,
+        multiple_table_flag=multiple_table_flag,
+        fund_names=fund_names,
+        fund_value_column_name=fund_value_column_name,
+        fund_row_index_start=fund_row_index_start,
+        fund_row_index_end=fund_row_index_end,
+        fund_col_parse_function=fund_col_parse_function,
+        fund_col_index_end=fund_col_index_end,
+        fund_col_number=fund_col_number,
+    )
+
+    pd.testing.assert_series_equal(left=actual, right=blend_fund_table_two_output)
