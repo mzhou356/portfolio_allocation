@@ -1,4 +1,4 @@
-# pylint: disable = too-many-locals
+# pylint: disable = too-many-locals, duplicate-code
 """This module tests all functions from module blend_fund_asset_allocation."""
 import pandas as pd
 import pytest
