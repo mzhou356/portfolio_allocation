@@ -10,6 +10,7 @@ from portfolio_allocation.blend_fund_asset_allocation import (
     _extract_fund_value_from_text_line,
     _process_blend_fund_texts,
     _process_blend_fund_tables,
+    _create_asset_allocation_from_pdf_tables,
 )
 
 
@@ -193,3 +194,24 @@ def test_process_blend_fund_tables_with_col_parse_function_succeeds(
     )
 
     pd.testing.assert_series_equal(left=actual, right=blend_fund_table_two_output)
+
+
+def test_create_asset_allocation_from_pdf_tables(
+    blend_fund_asset_allocation_table_fund,
+    expected_table_fund_asset_allocation,
+    blend_fund_table_one_output,
+    blend_fund_table_two_output,
+) -> None:
+    """
+    Test create_asset_allocation_from_pdf_tables.
+    """
+    fund_list = [blend_fund_table_one_output, blend_fund_table_two_output]
+    vested_pct = 0.8
+
+    actual = _create_asset_allocation_from_pdf_tables(
+        blend_fund_asset_allocation=blend_fund_asset_allocation_table_fund,
+        fund_list=fund_list,
+        vested_pct=vested_pct,
+    )
+
+    assert expected_table_fund_asset_allocation == actual
