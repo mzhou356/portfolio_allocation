@@ -11,6 +11,7 @@ from portfolio_allocation.blend_fund_asset_allocation import (
     _process_blend_fund_texts,
     _process_blend_fund_tables,
     _create_asset_allocation_from_pdf_tables,
+    _create_blend_fund_asset_allocation,
 )
 
 
@@ -215,3 +216,46 @@ def test_create_asset_allocation_from_pdf_tables(
     )
 
     assert expected_table_fund_asset_allocation == actual
+
+
+@pytest.mark.parametrize(
+    "fund_name, fund_mapping , total_fund_value, expected",
+    [
+        (
+            "A",
+            {"A": {"international_stock": 0.75, "fixed_income": 0.15, "cash": 0.1}},
+            1000,
+            {
+                "us_stock": 0.0,
+                "international_stock": 750.0,
+                "fixed_income": 150.0,
+                "other": 0.0,
+                "not_classified": 0.0,
+                "cash": 100.0,
+            },
+        ),
+        (
+            "B",
+            {"B": {"us_stock": 0.8, "other": 0.05, "cash": 0.15}},
+            2000,
+            {
+                "us_stock": 1600.0,
+                "international_stock": 0.0,
+                "fixed_income": 0.0,
+                "other": 100.0,
+                "not_classified": 0.0,
+                "cash": 300.0,
+            },
+        ),
+    ],
+)
+def test_create_blend_fund_asset_allocation(
+    fund_name, fund_mapping, total_fund_value, expected
+) -> None:
+    """Test function create blend fund asset allocation."""
+    actual = _create_blend_fund_asset_allocation(
+        fund_name=fund_name,
+        fund_mapping=fund_mapping,
+        total_fund_value=total_fund_value,
+    )
+    assert actual == expected
