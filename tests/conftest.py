@@ -2,6 +2,7 @@
 # pylint: disable = missing-module-docstring
 from typing import List, Dict
 
+import pandas as pd
 import pytest
 
 
@@ -54,3 +55,30 @@ def expected_text_fund_asset_allocation() -> Dict[str, float]:
         "not_classified": 625.135,
         "cash": 0.0,
     }
+
+
+@pytest.fixture(scope="function")
+def blend_fund_table_one() -> pd.DataFrame:
+    return pd.DataFrame(
+        {"balance": [100, 000.25, 125.65, 3000.28], "change_in_value": [-10, 5, 0]},
+        index=["fund_a", "fund_b", "fund_c"],
+    )
+
+
+@pytest.fixture(scope="function")
+def blend_fund_table_one_output() -> pd.Series:
+    return pd.Series(
+        [100, 000.25, 125.65, 3000.28], index=["fund_a", "fund_b", "fund_c"]
+    )
+
+
+@pytest.fixture(scope="function")
+def blend_fund_table_two() -> pd.DataFrame:
+    return pd.DataFrame(
+        {"name": ["fund_e yes", "fund_f no"], "value": [215.0, 1008.0]}, index=[0, 1]
+    )
+
+
+@pytest.fixture(scope="function")
+def blend_fund_table_two_output() -> pd.Series:
+    return pd.Series([215.0, 1008.0], index=["fund_e", "fund_f"])
