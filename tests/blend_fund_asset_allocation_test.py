@@ -13,6 +13,8 @@ from portfolio_allocation.blend_fund_asset_allocation import (
     _create_asset_allocation_from_pdf_tables,
     _create_blend_fund_asset_allocation,
     _process_all_pdf_table_funds,
+    _process_all_text_funds,
+    generate_combined_blend_fund_asset_allocation,
 )
 
 
@@ -308,3 +310,11 @@ def test_process_all_pdf_table_funds_succeeds(
     )
 
     assert actual == expected
+
+
+def test_process_all_text_funds_succeeds() -> None:
+    """Test process_all_text_funds."""
+
+
+def test_generate_combined_blend_fund_asset_allocation_succeeds() -> None:
+    """Test generate_combined_blend_fund_asset_allocation."""
