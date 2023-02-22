@@ -18,7 +18,7 @@ def load_pdf_statements(file_path: str) -> List[PageObject]:
         a virtual list of page objects.
     """
 
-    loaded_pdf = PyPDF2.PdfReader(file_path)
+    loaded_pdf = PyPDF2.PdfReader(stream=file_path)
     return loaded_pdf.pages
 
 
