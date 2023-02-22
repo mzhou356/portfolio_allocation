@@ -318,7 +318,7 @@ def test_process_all_text_funds_without_asset_allocation_field_succeeds(
     expected_text_fund_asset_allocation,
     mocker,
 ) -> None:
-    """Test process_all_text_funds."""
+    """Test process_all_text_funds without asset allocation field."""
     asset_information = {
         "fund_value_index_number": [0, 3],
         "amount_str_filter": ["$", None],
@@ -332,6 +332,54 @@ def test_process_all_text_funds_without_asset_allocation_field_succeeds(
         "portfolio_allocation.blend_fund_asset_allocation."
         "blend_fund_asset_allocation_generator",
         return_value=blend_fund_asset_allocation_text_fund,
+    )
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation.load_pdf_statements",
+        return_value=pdf_statement_pages,
+    )
+
+    actual = _process_all_text_funds(
+        asset_information=asset_information,
+        fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+        mid_url=mid_url,
+        file_path=file_path,
+        page_nums=page_nums,
+        fund_name_lists=fund_name_lists,
+    )
+
+    assert actual == expected_text_fund_asset_allocation
+
+
+def test_process_all_text_funds_with_asset_allocation_field_succeeds(
+    pdf_statement_pages,
+    expected_text_fund_asset_allocation,
+    mocker,
+) -> None:
+    """Test process_all_text_funds with asset_allocation field."""
+    asset_information = {
+        "fund_value_index_number": [0, 3],
+        "amount_str_filter": ["$", None],
+        "non_blend_fund_allocation": {
+            "fund_allocation": {
+                "E": {"not_classified": 0.5, "fixed_income": 0.5},
+                "F": {"us_stock": 0.75, "international_stock": 0.25},
+            },
+            "fund_index": 1,
+        }
+    }
+    fund_name_lists = [["A", "B", "C"], ["E", "F"]]
+    fund_name_to_ticker_mapping = [{"A": "ticker_A"}, {"E": "ticker_E"}]
+    mid_url = ["url", "url"]
+    page_nums = [1, 2]
+    file_path = "test_file_path"
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation."
+        "blend_fund_asset_allocation_generator",
+        return_value={
+            "A": {"us_stock": 1},
+            "B": {"international_stock": 0.75, "fixed_income": 0.25},
+            "C": {"other": 0.25, "us_stock": 0.50, "fixed_income": 0.25},
+        },
     )
     mocker.patch(
         "portfolio_allocation.blend_fund_asset_allocation.load_pdf_statements",
