@@ -312,8 +312,42 @@ def test_process_all_pdf_table_funds_succeeds(
     assert actual == expected
 
 
-def test_process_all_text_funds_succeeds() -> None:
+def test_process_all_text_funds_without_asset_allocation_field_succeeds(
+    pdf_statement_pages,
+    blend_fund_asset_allocation_text_fund,
+    expected_text_fund_asset_allocation,
+    mocker,
+) -> None:
     """Test process_all_text_funds."""
+    asset_information = {
+        "fund_value_index_number": [0, 3],
+        "amount_str_filter": ["$", None],
+    }
+    fund_name_lists = [["A", "B", "C"], ["E", "F"]]
+    fund_name_to_ticker_mapping = [{"A": "ticker_A"}, {"E": "ticker_E"}]
+    mid_url = ["url", "url"]
+    page_nums = [1, 2]
+    file_path = "test_file_path"
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation."
+        "blend_fund_asset_allocation_generator",
+        return_value=blend_fund_asset_allocation_text_fund,
+    )
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation.load_pdf_statements",
+        return_value=pdf_statement_pages,
+    )
+
+    actual = _process_all_text_funds(
+        asset_information=asset_information,
+        fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+        mid_url=mid_url,
+        file_path=file_path,
+        page_nums=page_nums,
+        fund_name_lists=fund_name_lists,
+    )
+
+    assert actual == expected_text_fund_asset_allocation
 
 
 def test_generate_combined_blend_fund_asset_allocation_succeeds() -> None:
