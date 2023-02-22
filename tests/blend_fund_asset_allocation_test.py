@@ -365,7 +365,7 @@ def test_process_all_text_funds_with_asset_allocation_field_succeeds(
                 "F": {"us_stock": 0.75, "international_stock": 0.25},
             },
             "fund_index": 1,
-        }
+        },
     }
     fund_name_lists = [["A", "B", "C"], ["E", "F"]]
     fund_name_to_ticker_mapping = [{"A": "ticker_A"}, {"E": "ticker_E"}]
@@ -398,5 +398,36 @@ def test_process_all_text_funds_with_asset_allocation_field_succeeds(
     assert actual == expected_text_fund_asset_allocation
 
 
-def test_generate_combined_blend_fund_asset_allocation_succeeds() -> None:
+def test_generate_combined_blend_fund_asset_allocation_succeeds(
+    expected_text_fund_asset_allocation,
+    expected_table_fund_asset_allocation,
+    mocker,
+) -> None:
     """Test generate_combined_blend_fund_asset_allocation."""
+    process_all_text_funds_mock = mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation._process_all_text_funds",
+        return_value=expected_text_fund_asset_allocation,
+    )
+    process_all_table_funds_mock = mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation._process_all_pdf_table_funds",
+        return_value=expected_table_fund_asset_allocation,
+    )
+    expected_output = {
+        "cash": 72.8,
+        "fixed_income": 3522.49,
+        "international_stock": 158712.54,
+        "not_classified": 3142.88,
+        "other": 5.34,
+        "us_stock": 470969.83,
+    }
+
+    actual = generate_combined_blend_fund_asset_allocation()
+    actual = {
+        asset_class: round(asset_value, 2)
+        for asset_class, asset_value in actual.items()
+    }
+
+    process_all_table_funds_mock.assert_called_once()
+    process_all_text_funds_mock.has_calls()
+
+    assert actual == expected_output
