@@ -13,6 +13,8 @@ from portfolio_allocation.blend_fund_asset_allocation import (
     _create_asset_allocation_from_pdf_tables,
     _create_blend_fund_asset_allocation,
     _process_all_pdf_table_funds,
+    _process_all_text_funds,
+    generate_combined_blend_fund_asset_allocation,
 )
 
 
@@ -308,3 +310,124 @@ def test_process_all_pdf_table_funds_succeeds(
     )
 
     assert actual == expected
+
+
+def test_process_all_text_funds_without_asset_allocation_field_succeeds(
+    pdf_statement_pages,
+    blend_fund_asset_allocation_text_fund,
+    expected_text_fund_asset_allocation,
+    mocker,
+) -> None:
+    """Test process_all_text_funds without asset allocation field."""
+    asset_information = {
+        "fund_value_index_number": [0, 3],
+        "amount_str_filter": ["$", None],
+    }
+    fund_name_lists = [["A", "B", "C"], ["E", "F"]]
+    fund_name_to_ticker_mapping = [{"A": "ticker_A"}, {"E": "ticker_E"}]
+    mid_url = ["url", "url"]
+    page_nums = [1, 2]
+    file_path = "test_file_path"
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation."
+        "blend_fund_asset_allocation_generator",
+        return_value=blend_fund_asset_allocation_text_fund,
+    )
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation.load_pdf_statements",
+        return_value=pdf_statement_pages,
+    )
+
+    actual = _process_all_text_funds(
+        asset_information=asset_information,
+        fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+        mid_url=mid_url,
+        file_path=file_path,
+        page_nums=page_nums,
+        fund_name_lists=fund_name_lists,
+    )
+
+    assert actual == expected_text_fund_asset_allocation
+
+
+def test_process_all_text_funds_with_asset_allocation_field_succeeds(
+    pdf_statement_pages,
+    expected_text_fund_asset_allocation,
+    mocker,
+) -> None:
+    """Test process_all_text_funds with asset_allocation field."""
+    asset_information = {
+        "fund_value_index_number": [0, 3],
+        "amount_str_filter": ["$", None],
+        "non_blend_fund_allocation": {
+            "fund_allocation": {
+                "E": {"not_classified": 0.5, "fixed_income": 0.5},
+                "F": {"us_stock": 0.75, "international_stock": 0.25},
+            },
+            "fund_index": 1,
+        },
+    }
+    fund_name_lists = [["A", "B", "C"], ["E", "F"]]
+    fund_name_to_ticker_mapping = [{"A": "ticker_A"}, {"E": "ticker_E"}]
+    mid_url = ["url", "url"]
+    page_nums = [1, 2]
+    file_path = "test_file_path"
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation."
+        "blend_fund_asset_allocation_generator",
+        return_value={
+            "A": {"us_stock": 1},
+            "B": {"international_stock": 0.75, "fixed_income": 0.25},
+            "C": {"other": 0.25, "us_stock": 0.50, "fixed_income": 0.25},
+        },
+    )
+    mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation.load_pdf_statements",
+        return_value=pdf_statement_pages,
+    )
+
+    actual = _process_all_text_funds(
+        asset_information=asset_information,
+        fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+        mid_url=mid_url,
+        file_path=file_path,
+        page_nums=page_nums,
+        fund_name_lists=fund_name_lists,
+    )
+
+    assert actual == expected_text_fund_asset_allocation
+
+
+def test_generate_combined_blend_fund_asset_allocation_succeeds(
+    expected_text_fund_asset_allocation,
+    expected_table_fund_asset_allocation,
+    mocker,
+) -> None:
+    """Test generate_combined_blend_fund_asset_allocation."""
+    process_all_text_funds_mock = mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation._process_all_text_funds",
+        return_value=expected_text_fund_asset_allocation,
+    )
+    process_all_table_funds_mock = mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation._process_all_pdf_table_funds",
+        return_value=expected_table_fund_asset_allocation,
+    )
+    expected_output = {
+        "cash": 72.8,
+        "fixed_income": 3522.49,
+        "international_stock": 158712.54,
+        "not_classified": 3142.88,
+        "other": 5.34,
+        "us_stock": 470969.83,
+    }
+
+    actual = generate_combined_blend_fund_asset_allocation()
+    actual = {
+        asset_class: round(asset_value, 2)
+        for asset_class, asset_value in actual.items()
+    }
+
+    process_all_table_funds_mock.assert_called_once()
+    process_all_text_funds_mock.has_calls()
+
+    assert actual == expected_output
