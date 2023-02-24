@@ -1,4 +1,6 @@
 """This module tests all functions from module blend_fund_asset_allocation scraper."""
+from unittest.mock import call
+
 import pytest
 from requests.exceptions import RequestException
 
@@ -6,6 +8,7 @@ from portfolio_allocation.blend_fund_asset_allocation_scraper import (
     _create_api_url_for_asset_allocation,
     _get_asset_allocation,
     _process_asset_allocation,
+    blend_fund_asset_allocation_generator,
     requests,
 )
 
@@ -72,7 +75,7 @@ def test_get_asset_allocation_raises_request_exception(mocker, caplog) -> None:
     assert expected_log in caplog.text
 
 
-def test_process_asset_allocation() -> None:
+def test_process_asset_allocation_succeeds() -> None:
     """Test process_asset_allocation."""
     raw_asset_allocation_map = {
         "AssetAllocCash": {"netAllocation": "2.21496"},
@@ -97,3 +100,69 @@ def test_process_asset_allocation() -> None:
     )
 
     assert actual == expected
+
+
+def test_blend_fund_asset_allocation_generator_succeeds(
+    mocker,
+) -> None:
+    """Test blend_fund_asset_allocation_generator"""
+    fund_name_to_ticker_mapping = {
+        "A": "a",
+        "B": "b",
+    }
+    mid_url = "test_url"
+    raw_mapping = {
+        "AssetAllocCash": {"netAllocation": "5.0"},
+        "AssetAllocNotClassified": {"netAllocation": "2.0"},
+        "AssetAllocNonUSEquity": {"netAllocation": "13"},
+        "AssetAllocOther": {"netAllocation": "5.0"},
+        "AssetAllocUSEquity": {"netAllocation": "50.0"},
+        "AssetAllocBond": {"netAllocation": "25.0"},
+    }
+    mock_url = mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation_scraper."
+        "_create_api_url_for_asset_allocation",
+        return_value="output_url",
+    )
+    mock_mapping = mocker.patch(
+        "portfolio_allocation.blend_fund_asset_allocation_scraper."
+        "_get_asset_allocation",
+        return_value=raw_mapping,
+    )
+    expected = {
+        "A": {
+            "cash": 0.05,
+            "fixed_income": 0.25,
+            "international_stock": 0.13,
+            "not_classified": 0.02,
+            "other": 0.05,
+            "us_stock": 0.50,
+        },
+        "B": {
+            "cash": 0.05,
+            "fixed_income": 0.25,
+            "international_stock": 0.13,
+            "not_classified": 0.02,
+            "other": 0.05,
+            "us_stock": 0.50,
+        },
+    }
+
+    actual = blend_fund_asset_allocation_generator(
+        fund_name_to_ticker_mapping=fund_name_to_ticker_mapping,
+        mid_url=mid_url,
+    )
+
+    assert actual == expected
+    mock_url.assert_has_calls(
+        [
+            call(fund_ticker="a", mid_url="test_url"),
+            call(fund_ticker="b", mid_url="test_url"),
+        ]
+    )
+    mock_mapping.assert_has_calls(
+        [
+            call(morningstar_asset_allocation_url="output_url"),
+            call(morningstar_asset_allocation_url="output_url"),
+        ]
+    )
