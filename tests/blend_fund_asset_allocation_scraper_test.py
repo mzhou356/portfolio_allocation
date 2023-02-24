@@ -1,6 +1,10 @@
 """This module tests all functions from module blend_fund_asset_allocation scraper."""
+import pytest
+from requests.exceptions import RequestException
+
 from portfolio_allocation.blend_fund_asset_allocation_scraper import (
     _create_api_url_for_asset_allocation,
+    _get_asset_allocation,
     requests,
 )
 
@@ -28,3 +32,40 @@ def test__create_api_url_for_asset_allocation_succeeds(mocker) -> None:
     )
 
     assert actual == expected
+
+
+def test_get_asset_allocation_succeeds(mocker):
+    """Test function get_asset_allocation."""
+    asset_allocation_url = "test_url"
+    api_key = "test_key"
+    text = '{"allocationMap": "test"}'
+    expected = "test"
+
+    mock_response = mocker.Mock()
+    mock_response.text = text
+    mocker.patch.object(requests, "get", return_value=mock_response)
+
+    actual = _get_asset_allocation(
+        morningstar_asset_allocation_url=asset_allocation_url,
+        api_key=api_key,
+    )
+
+    assert actual == expected
+
+
+def test_get_asset_allocation_raises_request_exception(mocker, caplog):
+    """Test function get_asset_allocation."""
+    asset_allocation_url = "test_url"
+    api_key = "test_key"
+    mocker.patch.object(requests, "get", side_effect=RequestException)
+    expected_log = (
+        "Please go to morningstar to retrieve an updated api key "
+        "for asset allocation and update default api key."
+    )
+
+    with pytest.raises(RequestException):
+        _get_asset_allocation(
+            morningstar_asset_allocation_url=asset_allocation_url,
+            api_key=api_key,
+        )
+    assert expected_log in caplog.text
