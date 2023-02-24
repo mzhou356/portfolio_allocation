@@ -5,6 +5,7 @@ from requests.exceptions import RequestException
 from portfolio_allocation.blend_fund_asset_allocation_scraper import (
     _create_api_url_for_asset_allocation,
     _get_asset_allocation,
+    _process_asset_allocation,
     requests,
 )
 
@@ -34,7 +35,7 @@ def test__create_api_url_for_asset_allocation_succeeds(mocker) -> None:
     assert actual == expected
 
 
-def test_get_asset_allocation_succeeds(mocker):
+def test_get_asset_allocation_succeeds(mocker) -> None:
     """Test function get_asset_allocation."""
     asset_allocation_url = "test_url"
     api_key = "test_key"
@@ -53,7 +54,7 @@ def test_get_asset_allocation_succeeds(mocker):
     assert actual == expected
 
 
-def test_get_asset_allocation_raises_request_exception(mocker, caplog):
+def test_get_asset_allocation_raises_request_exception(mocker, caplog) -> None:
     """Test function get_asset_allocation."""
     asset_allocation_url = "test_url"
     api_key = "test_key"
@@ -69,3 +70,30 @@ def test_get_asset_allocation_raises_request_exception(mocker, caplog):
             api_key=api_key,
         )
     assert expected_log in caplog.text
+
+
+def test_process_asset_allocation() -> None:
+    """Test process_asset_allocation."""
+    raw_asset_allocation_map = {
+        "AssetAllocCash": {"netAllocation": "2.21496"},
+        "AssetAllocNotClassified": {"netAllocation": "2.1495699999999998"},
+        "AssetAllocNonUSEquity": {"netAllocation": "14.48973"},
+        "AssetAllocOther": {"netAllocation": "0.00000"},
+        "AssetAllocUSEquity": {"netAllocation": "51.33144"},
+        "AssetAllocBond": {"netAllocation": "29.81429"},
+    }
+
+    expected = {
+        "cash": 0.022149600000000002,
+        "fixed_income": 0.2981429,
+        "international_stock": 0.1448973,
+        "not_classified": 0.021495699999999996,
+        "other": 0.0,
+        "us_stock": 0.5133144000000001,
+    }
+
+    actual = _process_asset_allocation(
+        raw_asset_allocation_mapping=raw_asset_allocation_map,
+    )
+
+    assert actual == expected

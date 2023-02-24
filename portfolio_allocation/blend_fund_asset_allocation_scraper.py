@@ -3,7 +3,7 @@
 etf fund asset allocations for the blend fund asset allocation calculation. """
 import json
 import logging
-from typing import Dict
+from typing import Dict, Any
 
 import requests
 from bs4 import BeautifulSoup
@@ -121,7 +121,7 @@ def _get_asset_allocation(
 
 
 def _process_asset_allocation(
-    raw_asset_allocation_mapping: Dict[str, Dict[str, float]]
+    raw_asset_allocation_mapping: Dict[str, Any]
 ) -> Dict[str, float]:
     """
     Parse raw asset allocation into standardized format that follow
