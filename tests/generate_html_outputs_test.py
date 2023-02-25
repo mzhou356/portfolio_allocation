@@ -1,11 +1,14 @@
 """This module tests all functions from module generate_html_outputs."""
-import pytest
+import builtins
+from unittest.mock import call
 
+import pytest
 from portfolio_allocation.generate_html_outputs import (
     open_local_html,
     webbrowser,
     _convert_df_to_html_table,
     _update_asset_allocation_table,
+    update_asset_allocation_html,
     AssetTableType,
 )
 from portfolio_allocation import ROOT_DIR
@@ -86,3 +89,34 @@ def test_update_asset_allocation_table_succeeds(
     )
 
     assert actual == expected
+
+
+def test_update_asset_allocation_html(
+    asset_allocation_by_asset_class_table,
+    asset_allocation_by_asset_class_and_region_table,
+    mocker,
+) -> None:
+    """Test update_asset_allocation_html."""
+    local_path = "test_path"
+    mock_open_method = mocker.patch.object(builtins, "open")
+    mock_convert_df_to_html = mocker.patch(
+        "portfolio_allocation.generate_html_outputs._convert_df_to_html_table",
+    )
+    mock_update_allocation_table = mocker.patch(
+        "portfolio_allocation.generate_html_outputs._update_asset_allocation_table",
+    )
+
+    update_asset_allocation_html(
+        asset_table_with_region=asset_allocation_by_asset_class_and_region_table,
+        asset_table_without_region=asset_allocation_by_asset_class_table,
+        file_path=local_path,
+    )
+
+    mock_convert_df_to_html.has_calls(
+        [
+            call(asset_table=asset_allocation_by_asset_class_table),
+            call(asset_table=asset_allocation_by_asset_class_and_region_table),
+        ]
+    )
+    mock_update_allocation_table.assert_called()
+    mock_open_method.assert_called()
