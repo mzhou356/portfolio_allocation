@@ -22,7 +22,7 @@ ALL_ASSET_TYPES: Set[str] = {"mortgage"}.union(PORTFOLIO_BREAKDOWN.keys())
 DEFAULT_US_INTERNATIONAL_ASSET_TYPES: Set[str] = {"fixed_income"}
 DEFAULT_REGION_INDICES: List[str] = ["us", "international", "us_international"]
 DEFAULT_NA_VALUE: float = 0.0
-DEFAULT_TOTAL_COLUMN_NAME: str = "total"
+DEFAULT_TOTAL_ROW_INDEX: str = "total"
 
 
 def combine_all_asset_allocation(
@@ -132,6 +132,6 @@ def generate_asset_allocation_by_region_and_asset_class_table(
             asset_type, DEFAULT_ASSET_PCT_COLUMN_NAME
         ]
     asset_allocation_by_region_and_asset_class_df.loc[
-        DEFAULT_TOTAL_COLUMN_NAME
+        DEFAULT_TOTAL_ROW_INDEX
     ] = asset_allocation_by_region_and_asset_class_df.sum()
     return asset_allocation_by_region_and_asset_class_df

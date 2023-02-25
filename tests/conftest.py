@@ -113,3 +113,30 @@ def blend_fund_table_two_output() -> pd.Series:
     output = pd.Series(["215.0", "1008.0"], name=1, index=["fund_e", "fund_f"])
     output.index.name = 0
     return output
+
+
+@pytest.fixture(scope="function")
+def asset_allocation_by_asset_class_table() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "asset_value($)": [7500.0, 2500.0, 5000.0, 500.0, 2000.0, 50.0, 100.0],
+            "asset_pct": [
+                42.492918,
+                14.164306,
+                28.328612,
+                2.832861,
+                11.331445,
+                0.283286,
+                0.566572,
+            ],
+        },
+        index=[
+            "us_stock",
+            "international_stock",
+            "fixed_income",
+            "cash",
+            "mortgage",
+            "other",
+            "not_classified",
+        ],
+    )

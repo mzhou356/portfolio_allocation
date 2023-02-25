@@ -6,6 +6,7 @@ from portfolio_allocation.combined_asset_allocation import (
     _calculate_asset_percentage_column,
     combine_all_asset_allocation,
     generate_asset_allocation_by_asset_class_table,
+    generate_asset_allocation_by_region_and_asset_class_table,
 )
 
 
@@ -85,7 +86,9 @@ def test_combine_all_asset_allocation_succeeds() -> None:
     assert actual == expected
 
 
-def test_generate_asset_allocation_by_asset_class_table_succeeds() -> None:
+def test_generate_asset_allocation_by_asset_class_table_succeeds(
+    asset_allocation_by_asset_class_table,
+) -> None:
     """Test generate_asset_allocation_by_asset_class_table."""
     all_asset_allocation = {
         "us_stock": 7500.0,
@@ -96,30 +99,35 @@ def test_generate_asset_allocation_by_asset_class_table_succeeds() -> None:
         "other": 50.0,
         "not_classified": 100.0,
     }
-    expected = pd.DataFrame(
-        {"asset_value($)": [7500.0, 2500.0, 5000.0, 500.0, 2000.0, 50.0, 100.0]},
-        index=[
-            "us_stock",
-            "international_stock",
-            "fixed_income",
-            "cash",
-            "mortgage",
-            "other",
-            "not_classified",
-        ],
-    )
-    expected["asset_pct"] = [
-        42.492918,
-        14.164306,
-        28.328612,
-        2.832861,
-        11.331445,
-        0.283286,
-        0.566572,
-    ]
 
     actual = generate_asset_allocation_by_asset_class_table(
         all_asset_allocation=all_asset_allocation
+    )
+
+    pd.testing.assert_frame_equal(
+        left=actual,
+        right=asset_allocation_by_asset_class_table,
+    )
+
+
+def test_generate_asset_allocation_by_region_and_asset_class_table(
+    asset_allocation_by_asset_class_table,
+) -> None:
+    """Test generate_asset_allocation_by_region_and_asset_class_table."""
+    expected = pd.DataFrame(
+        {
+            "cash": [2.832861, 0.0, 0.0, 2.832861],
+            "fixed_income": [0.0, 0.0, 28.328612, 28.328612],
+            "stock": [42.492918, 14.164306, 0.0, 56.657224],
+            "mortgage": [11.331445, 0.0, 0.0, 11.331445],
+            "other": [0.283286, 0.0, 0.0, 0.283286],
+            "not_classified": [0.566572, 0.0, 0.0, 0.566572],
+        },
+        index=["us", "international", "us_international", "total"],
+    )
+
+    actual = generate_asset_allocation_by_region_and_asset_class_table(
+        asset_allocation_by_asset_class_table=asset_allocation_by_asset_class_table,
     )
 
     pd.testing.assert_frame_equal(
