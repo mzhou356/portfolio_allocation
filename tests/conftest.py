@@ -140,3 +140,101 @@ def asset_allocation_by_asset_class_table() -> pd.DataFrame:
             "not_classified",
         ],
     )
+
+
+@pytest.fixture(scope="function")
+def asset_allocation_by_asset_class_and_region_table() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "cash": [2.832861, 0.0, 0.0, 2.832861],
+            "fixed_income": [0.0, 0.0, 28.328612, 28.328612],
+            "stock": [42.492918, 14.164306, 0.0, 56.657224],
+            "mortgage": [11.331445, 0.0, 0.0, 11.331445],
+            "other": [0.283286, 0.0, 0.0, 0.283286],
+            "not_classified": [0.566572, 0.0, 0.0, 0.566572],
+        },
+        index=["us", "international", "us_international", "total"],
+    )
+
+
+@pytest.fixture(scope="function")
+def asset_allocation_by_asset_class_html_table_lines() -> List[str]:
+    return [
+        "\t\t<tr>\n",
+        "\t\t\t<td>us_stock</td>\n",
+        "\t\t\t<td>7500.0</td>\n",
+        "\t\t\t<td>42.492918</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>international_stock</td>\n",
+        "\t\t\t<td>2500.0</td>\n",
+        "\t\t\t<td>14.164306</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>fixed_income</td>\n",
+        "\t\t\t<td>5000.0</td>\n",
+        "\t\t\t<td>28.328612</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>cash</td>\n",
+        "\t\t\t<td>500.0</td>\n",
+        "\t\t\t<td>2.832861</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>mortgage</td>\n",
+        "\t\t\t<td>2000.0</td>\n",
+        "\t\t\t<td>11.331445</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>other</td>\n",
+        "\t\t\t<td>50.0</td>\n",
+        "\t\t\t<td>0.283286</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>not_classified</td>\n",
+        "\t\t\t<td>100.0</td>\n",
+        "\t\t\t<td>0.566572</td>\n",
+        "\t\t</tr>\n",
+    ]
+
+
+@pytest.fixture(scope="function")
+def asset_allocation_by_asset_class_and_region_html_table_lines() -> List[str]:
+    return [
+        "\t\t<tr>\n",
+        "\t\t\t<td>us</td>\n",
+        "\t\t\t<td>2.832861</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>42.492918</td>\n",
+        "\t\t\t<td>11.331445</td>\n",
+        "\t\t\t<td>0.283286</td>\n",
+        "\t\t\t<td>0.566572</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>international</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>14.164306</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>us_international</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>28.328612</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t\t<td>0.0</td>\n",
+        "\t\t</tr>\n",
+        "\t\t<tr>\n",
+        "\t\t\t<td>total</td>\n",
+        "\t\t\t<td>2.832861</td>\n",
+        "\t\t\t<td>28.328612</td>\n",
+        "\t\t\t<td>56.657224</td>\n",
+        "\t\t\t<td>11.331445</td>\n",
+        "\t\t\t<td>0.283286</td>\n",
+        "\t\t\t<td>0.566572</td>\n",
+        "\t\t</tr>\n",
+    ]

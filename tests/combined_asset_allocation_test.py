@@ -112,19 +112,9 @@ def test_generate_asset_allocation_by_asset_class_table_succeeds(
 
 def test_generate_asset_allocation_by_region_and_asset_class_table(
     asset_allocation_by_asset_class_table,
+    asset_allocation_by_asset_class_and_region_table,
 ) -> None:
     """Test generate_asset_allocation_by_region_and_asset_class_table."""
-    expected = pd.DataFrame(
-        {
-            "cash": [2.832861, 0.0, 0.0, 2.832861],
-            "fixed_income": [0.0, 0.0, 28.328612, 28.328612],
-            "stock": [42.492918, 14.164306, 0.0, 56.657224],
-            "mortgage": [11.331445, 0.0, 0.0, 11.331445],
-            "other": [0.283286, 0.0, 0.0, 0.283286],
-            "not_classified": [0.566572, 0.0, 0.0, 0.566572],
-        },
-        index=["us", "international", "us_international", "total"],
-    )
 
     actual = generate_asset_allocation_by_region_and_asset_class_table(
         asset_allocation_by_asset_class_table=asset_allocation_by_asset_class_table,
@@ -132,5 +122,5 @@ def test_generate_asset_allocation_by_region_and_asset_class_table(
 
     pd.testing.assert_frame_equal(
         left=actual,
-        right=expected,
+        right=asset_allocation_by_asset_class_and_region_table,
     )
