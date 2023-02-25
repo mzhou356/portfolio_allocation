@@ -4,6 +4,7 @@ import pytest
 from portfolio_allocation.combined_asset_allocation import (
     _assign_asset_type_breakdown,
     _calculate_asset_percentage_column,
+    combine_all_asset_allocation,
 )
 
 
@@ -54,3 +55,30 @@ def test_calculate_asset_percentage_column_succeeds(
     )
 
     pd.testing.assert_series_equal(left=actual, right=expected)
+
+
+def test_combine_all_asset_allocation_succeeds() -> None:
+    """Test combine_all_asset_allocation."""
+    blend_fund = {
+        "a": 1000.0,
+        "b": 2000.0,
+        "c": 1000.0,
+    }
+    non_blend_fund = {
+        "a": 2000.0,
+        "d": 500.0,
+        "c": 2000.0,
+    }
+    expected = {
+        "a": 3000.0,
+        "b": 2000.0,
+        "c": 3000.0,
+        "d": 500.0,
+    }
+
+    actual = combine_all_asset_allocation(
+        blend_fund_asset_allocation=blend_fund,
+        non_blend_fund_asset_allocation=non_blend_fund,
+    )
+
+    assert actual == expected
