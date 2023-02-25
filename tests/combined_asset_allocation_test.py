@@ -5,6 +5,7 @@ from portfolio_allocation.combined_asset_allocation import (
     _assign_asset_type_breakdown,
     _calculate_asset_percentage_column,
     combine_all_asset_allocation,
+    generate_asset_allocation_by_asset_class_table,
 )
 
 
@@ -82,3 +83,46 @@ def test_combine_all_asset_allocation_succeeds() -> None:
     )
 
     assert actual == expected
+
+
+def test_generate_asset_allocation_by_asset_class_table_succeeds() -> None:
+    """Test generate_asset_allocation_by_asset_class_table."""
+    all_asset_allocation = {
+        "us_stock": 7500.0,
+        "international_stock": 2500.0,
+        "fixed_income": 5000.0,
+        "cash": 500.0,
+        "mortgage": 2000.0,
+        "other": 50.0,
+        "not_classified": 100.0,
+    }
+    expected = pd.DataFrame(
+        {"asset_value($)": [7500.0, 2500.0, 5000.0, 500.0, 2000.0, 50.0, 100.0]},
+        index=[
+            "us_stock",
+            "international_stock",
+            "fixed_income",
+            "cash",
+            "mortgage",
+            "other",
+            "not_classified",
+        ],
+    )
+    expected["asset_pct"] = [
+        42.492918,
+        14.164306,
+        28.328612,
+        2.832861,
+        11.331445,
+        0.283286,
+        0.566572,
+    ]
+
+    actual = generate_asset_allocation_by_asset_class_table(
+        all_asset_allocation=all_asset_allocation
+    )
+
+    pd.testing.assert_frame_equal(
+        left=actual,
+        right=expected,
+    )
