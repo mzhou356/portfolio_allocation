@@ -238,3 +238,26 @@ def asset_allocation_by_asset_class_and_region_html_table_lines() -> List[str]:
         "\t\t\t<td>0.566572</td>\n",
         "\t\t</tr>\n",
     ]
+
+
+@pytest.fixture(scope="function")
+def html_data() -> List[str]:
+    return ["test_data"] * 150
+
+
+@pytest.fixture(scope="function")
+def html_asset_class_table_output(
+    html_data, asset_allocation_by_asset_class_html_table_lines
+) -> List[str]:
+    html_data = html_data.copy()
+    html_data[45:80] = asset_allocation_by_asset_class_html_table_lines
+    return html_data
+
+
+@pytest.fixture(scope="function")
+def html_asset_class_region_table_output(
+    html_data, asset_allocation_by_asset_class_and_region_html_table_lines
+) -> List[str]:
+    html_data = html_data.copy()
+    html_data[93:129] = asset_allocation_by_asset_class_and_region_html_table_lines
+    return html_data
