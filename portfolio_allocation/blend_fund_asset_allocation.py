@@ -2,6 +2,7 @@
 """This module calculates asset_allocation for all accounts with just one or
 more blend type funds or funds."""
 from typing import Dict, Any, Set, Union, Callable, List, Optional
+import logging
 
 import pandas as pd
 
@@ -17,6 +18,9 @@ from portfolio_allocation.configuration import (
 
 DEFAULT_CHARS_TO_STRIP: str = "USD$"
 
+logging.basicConfig(level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
+
 
 def generate_combined_blend_fund_asset_allocation() -> Dict[str, float]:
     """
@@ -27,6 +31,8 @@ def generate_combined_blend_fund_asset_allocation() -> Dict[str, float]:
     """
     combined_blend_fund_asset_allocation = PORTFOLIO_BREAKDOWN.copy()
     for blend_account in ALL_CURRENT_BLEND_ACCOUNTS:
+        LOGGER.info(blend_account)
+
         asset_information = BLEND_FUND_ACCOUNT_TO_ASSET_CALCULATION_MAPPING[
             blend_account
         ]
