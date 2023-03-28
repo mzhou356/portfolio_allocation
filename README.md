@@ -1,5 +1,4 @@
 # portfolio_allocation
-# test
 This is a personal program that calculates investment portfolio allocation. Below are the assets considered for the asset allocation:
 * stocks
 * bonds
